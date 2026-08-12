@@ -18,6 +18,7 @@ from homeassistant.config_entries import (
     OptionsFlowWithConfigEntry,
 )
 from homeassistant.components import mqtt
+from homeassistant.helpers import selector
 
 from .const import (
     CONF_FEEDING_PLANS,
@@ -557,9 +558,16 @@ class PetlibroOptionsFlow(OptionsFlowWithConfigEntry):
                 vol.Required("portions", default=1): vol.All(
                     int, vol.Range(min=1, max=20)
                 ),
-                vol.Optional("days", default=[]): [
-                    vol.In(["1", "2", "3", "4", "5", "6", "7"])
-                ],
+                vol.Optional("days", default=[]): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=[
+                            selector.SelectOptionDict(value=str(day), label=name)
+                            for day, name in DAY_NAMES.items()
+                        ],
+                        multiple=True,
+                        mode=selector.SelectSelectorMode.LIST,
+                    )
+                ),
                 vol.Optional("enable_audio", default=True): bool,
             }
         )
