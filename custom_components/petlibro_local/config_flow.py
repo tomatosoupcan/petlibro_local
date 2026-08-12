@@ -557,10 +557,9 @@ class PetlibroOptionsFlow(OptionsFlowWithConfigEntry):
                 vol.Required("portions", default=1): vol.All(
                     int, vol.Range(min=1, max=20)
                 ),
-                vol.Optional("days", default=[]): vol.All(
-                    vol.Coerce(list),
-                    [vol.In(["1", "2", "3", "4", "5", "6", "7"])],
-                ),
+                vol.Optional("days", default=[]): [
+                    vol.In(["1", "2", "3", "4", "5", "6", "7"])
+                ],
                 vol.Optional("enable_audio", default=True): bool,
             }
         )
