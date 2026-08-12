@@ -26,7 +26,7 @@ class PetlibroEntity(CoordinatorEntity[PetlibroCoordinator]):
             identifiers={(DOMAIN, self._device.serial)},
             name=self._device.name,
             manufacturer="Petlibro",
-            model=info.get("product_id", "PLAF203"),
+            model=info.get("product_id", self._device.product_id),
             sw_version=info.get("software_version"),
             hw_version=info.get("hardware_version"),
         )

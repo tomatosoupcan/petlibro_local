@@ -12,7 +12,9 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import (
+    CONF_PRODUCT_ID,
     CONF_SERIAL,
+    DEVICE_PRODUCT_ID,
     DOMAIN,
 )
 from .device import PetlibroDevice
@@ -41,6 +43,7 @@ class PetlibroCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             serial=self._serial,
             mqtt_publish=self._mqtt_publish,
             on_state_changed=self._on_device_state_changed,
+            product_id=entry.data.get(CONF_PRODUCT_ID, DEVICE_PRODUCT_ID),
         )
 
         self._mqtt_client: Any = None
