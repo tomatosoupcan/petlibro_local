@@ -17,6 +17,8 @@ EVENT_FEEDING_BLOCKED = "feeding_blocked"
 EVENT_ERROR = "error"
 EVENT_MOTION_DETECTED = "motion_detected"
 EVENT_SOUND_DETECTED = "sound_detected"
+EVENT_PET_NEAR = "pet_near"
+EVENT_PET_LEAVE = "pet_leave"
 
 
 async def async_setup_entry(
@@ -28,6 +30,7 @@ async def async_setup_entry(
         PetlibroFeedingEvent(coordinator),
         PetlibroErrorEvent(coordinator),
         PetlibroDetectionEvent(coordinator),
+        PetlibroPetIdentifyEvent(coordinator),
     ])
 
 
@@ -124,5 +127,37 @@ class PetlibroDetectionEvent(PetlibroEntity, EventEntity):
                     {"type": detection_type, "timestamp": detection_ts},
                 )
             self._last_detection_ts = detection_ts
+
+        self.async_write_ha_state()
+
+
+class PetlibroPetIdentifyEvent(PetlibroEntity, EventEntity):
+    _attr_name = "Pet Identify"
+    _attr_event_types = [EVENT_PET_NEAR, EVENT_PET_LEAVE]
+    _attr_icon = "mdi:paw"
+
+    def __init__(self, coordinator: PetlibroCoordinator) -> None:
+        super().__init__(coordinator)
+        self._last_identify_ts: int | None = None
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._device.serial}_pet_identify_event"
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Fire events when an RFID-tagged pet is detected near or leaving."""
+        identify_ts = self.coordinator.data.get("pet_identify_ts")
+
+        if identify_ts and identify_ts != self._last_identify_ts:
+            identify_type = self.coordinator.data.get("pet_identify_type")
+            rfid = self.coordinator.data.get("pet_identify_rfid")
+
+            if identify_type == "NEAR":
+                self._trigger_event(EVENT_PET_NEAR, {"rfid": rfid, "timestamp": identify_ts})
+            elif identify_type == "LEAVE":
+                self._trigger_event(EVENT_PET_LEAVE, {"rfid": rfid, "timestamp": identify_ts})
+
+            self._last_identify_ts = identify_ts
 
         self.async_write_ha_state()

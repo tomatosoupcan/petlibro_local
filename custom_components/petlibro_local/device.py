@@ -29,7 +29,9 @@ from .const import (
     CMD_MANUAL_FEEDING_SERVICE,
     CMD_NTP,
     CMD_NTP_SYNC,
+    CMD_PET_IDENTIFY_EVENT,
     CMD_RESET,
+    CMD_WAREHOUSE_DOOR_EVENT,
     CODE_OK,
     DEVICE_PRODUCT_ID,
     HEARTBEAT_INTERVAL_SEC,
@@ -364,6 +366,46 @@ class PetlibroDevice:
         self.state["detection_ts"] = ts
         self._notify_state_changed()
 
+    async def _handle_pet_identify_event(self, payload: dict) -> None:
+        """RFID pet detected near or leaving the feeder."""
+        msg_id = payload.get("msgId")
+        rfid = payload.get("rfid")
+        identify_type = payload.get("type", "UNKNOWN")
+        exec_time = payload.get("execTime")
+        _LOGGER.debug(
+            "Device %s pet identify: rfid=%s type=%s", self.serial, rfid, identify_type
+        )
+
+        # Acknowledge
+        await self._publish(
+            self.topics.event_sub,
+            build_response(CMD_PET_IDENTIFY_EVENT, msg_id),
+        )
+
+        # Store in state for the event entity to pick up
+        self.state["pet_identify_rfid"] = rfid
+        self.state["pet_identify_type"] = identify_type
+        self.state["pet_identify_ts"] = exec_time
+        self._notify_state_changed()
+
+    async def _handle_warehouse_door_event(self, payload: dict) -> None:
+        """Warehouse (barn) door opened or closed."""
+        msg_id = payload.get("msgId")
+        _LOGGER.debug(
+            "Device %s warehouse door: state=%s trigger=%s",
+            self.serial, payload.get("barnDoorState"), payload.get("triggerType"),
+        )
+
+        # Acknowledge
+        await self._publish(
+            self.topics.event_sub,
+            build_response(CMD_WAREHOUSE_DOOR_EVENT, msg_id),
+        )
+
+        state_update = normalize_payload(payload)
+        self.state.update(state_update)
+        self._notify_state_changed()
+
     # --- Handler dispatch table ---
 
     _HANDLERS: dict[str, Callable] = {
@@ -380,6 +422,8 @@ class PetlibroDevice:
         CMD_MANUAL_FEEDING_SERVICE: _handle_manual_feeding_response,
         CMD_ERROR_EVENT: _handle_error_event,
         CMD_DETECTION_EVENT: _handle_detection_event,
+        CMD_PET_IDENTIFY_EVENT: _handle_pet_identify_event,
+        CMD_WAREHOUSE_DOOR_EVENT: _handle_warehouse_door_event,
         CMD_GET_CONFIG: _handle_get_config,
         CMD_BINDING: _handle_binding,
         CMD_RESET: _handle_reset,
