@@ -13,6 +13,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     PERCENTAGE,
     SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
+    UnitOfElectricCurrent,
+    UnitOfTime,
     EntityCategory,
 )
 from homeassistant.core import HomeAssistant, callback
@@ -48,6 +50,21 @@ async def async_setup_entry(
         PetlibroSdCardCapacitySensor(coordinator),
         PetlibroSdCardUsedSensor(coordinator),
         PetlibroFeedingScheduleSensor(coordinator),
+        PetlibroWifiSsidSensor(coordinator),
+        PetlibroAudioUrlSensor(coordinator),
+        PetlibroCoverCloseSpeedSensor(coordinator),
+        PetlibroCoverClosePositionSensor(coordinator),
+        PetlibroChildLockDurationSensor(coordinator),
+        PetlibroChildUnlockDurationSensor(coordinator),
+        PetlibroCloseDoorTimeSensor(coordinator),
+        PetlibroSurplusGrainCheckThresholdSensor(coordinator),
+        PetlibroScreenDisplayIntervalSensor(coordinator),
+        PetlibroDoorFastModeStuckCurrentSensor(coordinator),
+        PetlibroDoorSlowModeStuckCurrentSensor(coordinator),
+        PetlibroDoorFastModePwmDutySensor(coordinator),
+        PetlibroDoorSlowModePwmDutySensor(coordinator),
+        PetlibroAutoChangeTypeSensor(coordinator),
+        PetlibroAutoThresholdSensor(coordinator),
     ])
 
 
@@ -333,6 +350,211 @@ def _next_feed_time(plans: list[dict]) -> str | None:
         return next_dt.strftime("%-I:%M %p")
 
     return None
+
+
+class PetlibroWifiSsidSensor(PetlibroEntity, SensorEntity):
+    _attr_name = "WiFi SSID"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._device.serial}_wifi_ssid"
+
+    @property
+    def native_value(self):
+        return self.coordinator.data.get("wifi_ssid")
+
+
+class PetlibroAudioUrlSensor(PetlibroEntity, SensorEntity):
+    _attr_name = "Audio URL"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._device.serial}_audio_url"
+
+    @property
+    def native_value(self):
+        return self.coordinator.data.get("audio_url")
+
+
+class PetlibroCoverCloseSpeedSensor(PetlibroEntity, SensorEntity):
+    _attr_name = "Lid Close Speed"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._device.serial}_cover_close_speed"
+
+    @property
+    def native_value(self):
+        return self.coordinator.data.get("cover_close_speed")
+
+
+class PetlibroCoverClosePositionSensor(PetlibroEntity, SensorEntity):
+    _attr_name = "Lid Close Position"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._device.serial}_cover_close_position"
+
+    @property
+    def native_value(self):
+        return self.coordinator.data.get("cover_close_position")
+
+
+class PetlibroChildLockDurationSensor(PetlibroEntity, SensorEntity):
+    _attr_name = "Child Lock Duration"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_native_unit_of_measurement = UnitOfTime.SECONDS
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._device.serial}_child_lock_lock_duration"
+
+    @property
+    def native_value(self):
+        return self.coordinator.data.get("child_lock_lock_duration")
+
+
+class PetlibroChildUnlockDurationSensor(PetlibroEntity, SensorEntity):
+    _attr_name = "Child Unlock Duration"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_native_unit_of_measurement = UnitOfTime.SECONDS
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._device.serial}_child_lock_unlock_duration"
+
+    @property
+    def native_value(self):
+        return self.coordinator.data.get("child_lock_unlock_duration")
+
+
+class PetlibroCloseDoorTimeSensor(PetlibroEntity, SensorEntity):
+    _attr_name = "Close Door Time"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_native_unit_of_measurement = UnitOfTime.SECONDS
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._device.serial}_close_door_time_sec"
+
+    @property
+    def native_value(self):
+        return self.coordinator.data.get("close_door_time_sec")
+
+
+class PetlibroSurplusGrainCheckThresholdSensor(PetlibroEntity, SensorEntity):
+    _attr_name = "Surplus Grain Check Threshold"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_native_unit_of_measurement = UnitOfTime.SECONDS
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._device.serial}_surplus_grain_check_threshold_sec"
+
+    @property
+    def native_value(self):
+        return self.coordinator.data.get("surplus_grain_check_threshold_sec")
+
+
+class PetlibroScreenDisplayIntervalSensor(PetlibroEntity, SensorEntity):
+    _attr_name = "Screen Display Interval"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._device.serial}_screen_display_interval"
+
+    @property
+    def native_value(self):
+        return self.coordinator.data.get("screen_display_interval")
+
+
+class PetlibroDoorFastModeStuckCurrentSensor(PetlibroEntity, SensorEntity):
+    _attr_name = "Door Fast Mode Stuck Current"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_device_class = SensorDeviceClass.CURRENT
+    _attr_native_unit_of_measurement = UnitOfElectricCurrent.MILLIAMPERE
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._device.serial}_door_fast_mode_stuck_ma"
+
+    @property
+    def native_value(self):
+        return self.coordinator.data.get("door_fast_mode_stuck_ma")
+
+
+class PetlibroDoorSlowModeStuckCurrentSensor(PetlibroEntity, SensorEntity):
+    _attr_name = "Door Slow Mode Stuck Current"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_device_class = SensorDeviceClass.CURRENT
+    _attr_native_unit_of_measurement = UnitOfElectricCurrent.MILLIAMPERE
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._device.serial}_door_slow_mode_stuck_ma"
+
+    @property
+    def native_value(self):
+        return self.coordinator.data.get("door_slow_mode_stuck_ma")
+
+
+class PetlibroDoorFastModePwmDutySensor(PetlibroEntity, SensorEntity):
+    _attr_name = "Door Fast Mode PWM Duty"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_native_unit_of_measurement = PERCENTAGE
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._device.serial}_door_fast_mode_pwm_duty"
+
+    @property
+    def native_value(self):
+        return self.coordinator.data.get("door_fast_mode_pwm_duty")
+
+
+class PetlibroDoorSlowModePwmDutySensor(PetlibroEntity, SensorEntity):
+    _attr_name = "Door Slow Mode PWM Duty"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_native_unit_of_measurement = PERCENTAGE
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._device.serial}_door_slow_mode_pwm_duty"
+
+    @property
+    def native_value(self):
+        return self.coordinator.data.get("door_slow_mode_pwm_duty")
+
+
+class PetlibroAutoChangeTypeSensor(PetlibroEntity, SensorEntity):
+    _attr_name = "Auto Change Type"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._device.serial}_auto_change_type"
+
+    @property
+    def native_value(self):
+        return self.coordinator.data.get("auto_change_type")
+
+
+class PetlibroAutoThresholdSensor(PetlibroEntity, SensorEntity):
+    _attr_name = "Auto Threshold"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._device.serial}_auto_threshold"
+
+    @property
+    def native_value(self):
+        return self.coordinator.data.get("auto_threshold")
 
 
 class PetlibroFeedingScheduleSensor(PetlibroEntity, SensorEntity):

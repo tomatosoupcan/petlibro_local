@@ -24,6 +24,8 @@ async def async_setup_entry(
         PetlibroOnlineSensor(coordinator),
         PetlibroFoodLevelSensor(coordinator),
         PetlibroGrainOutletSensor(coordinator),
+        PetlibroLidSensor(coordinator),
+        PetlibroCoilStateSensor(coordinator),
     ])
 
 
@@ -78,3 +80,29 @@ class PetlibroGrainOutletSensor(PetlibroEntity, BinarySensorEntity):
         if state is None:
             return None
         return not state  # grain_outlet_state=True means not blocked
+
+
+class PetlibroLidSensor(PetlibroEntity, BinarySensorEntity):
+    _attr_name = "Lid"
+    _attr_device_class = BinarySensorDeviceClass.OPENING
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._device.serial}_lid"
+
+    @property
+    def is_on(self) -> bool | None:
+        return self.coordinator.data.get("barn_door_state")
+
+
+class PetlibroCoilStateSensor(PetlibroEntity, BinarySensorEntity):
+    _attr_name = "Motor Coil"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._device.serial}_coil_state"
+
+    @property
+    def is_on(self) -> bool | None:
+        return self.coordinator.data.get("coil_state")

@@ -30,6 +30,9 @@ async def async_setup_entry(
         PetlibroAttrSwitch(coordinator, "Motion Detection", "motion_detection_switch", "motionDetectionSwitch", "mdi:motion-sensor"),
         PetlibroAttrSwitch(coordinator, "Sound Detection", "sound_detection_switch", "soundDetectionSwitch", "mdi:ear-hearing"),
         PetlibroAttrSwitch(coordinator, "Auto Button Lock", "auto_change_mode", "autoChangeMode", "mdi:lock"),
+        PetlibroAttrSwitch(coordinator, "Child Lock", "child_lock_switch", "childLockSwitch", "mdi:lock-outline"),
+        PetlibroAttrSwitch(coordinator, "Screen Display", "screen_display_switch", "screenDisplaySwitch", "mdi:monitor"),
+        PetlibroAttrSwitch(coordinator, "Disable Hardware Button", "disable_hardware_button", "disableHardwareButton", "mdi:gesture-tap-button"),
     ])
 
 

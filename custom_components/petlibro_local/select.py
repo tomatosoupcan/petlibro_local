@@ -23,6 +23,7 @@ async def async_setup_entry(
         PetlibroMotionDetectionRangeSelect(coordinator),
         PetlibroMotionDetectionSensitivitySelect(coordinator),
         PetlibroSoundDetectionSensitivitySelect(coordinator),
+        PetlibroCoverOpenModeSelect(coordinator),
     ])
 
 
@@ -166,3 +167,27 @@ class PetlibroSoundDetectionSensitivitySelect(PetlibroEntity, SelectEntity):
     async def async_select_option(self, option: str) -> None:
         mqtt_val = {"Low": "LOW", "Medium": "MEDIUM", "High": "HIGH"}[option]
         await self._device.set_attributes(sound_detection_sensitivity=mqtt_val)
+
+
+class PetlibroCoverOpenModeSelect(PetlibroEntity, SelectEntity):
+    _attr_name = "Lid Mode"
+    _attr_icon = "mdi:door"
+    _attr_options = ["Keep Open", "Keep Closed"]
+
+    _OPTION_MAP = {"KEEP_OPEN": "Keep Open", "KEEP_CLOSE": "Keep Closed"}
+    _REVERSE_MAP = {"Keep Open": "KEEP_OPEN", "Keep Closed": "KEEP_CLOSE"}
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._device.serial}_cover_open_mode"
+
+    @property
+    def current_option(self) -> str | None:
+        val = self.coordinator.data.get("cover_open_mode")
+        if val is None:
+            return None
+        return self._OPTION_MAP.get(str(val))
+
+    async def async_select_option(self, option: str) -> None:
+        mqtt_val = self._REVERSE_MAP[option]
+        await self._device.set_attributes(cover_open_mode=mqtt_val)
