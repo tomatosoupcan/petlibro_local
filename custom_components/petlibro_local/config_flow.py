@@ -23,9 +23,12 @@ from .const import (
     CONF_FEEDING_PLANS,
     CONF_MQTT_USERNAME,
     CONF_MQTT_PASSWORD,
+    CONF_PRODUCT_ID,
     CONF_SERIAL,
+    DEVICE_PRODUCT_ID,
     DOMAIN,
     MAX_FEEDING_PLANS,
+    SUPPORTED_PRODUCT_IDS,
 )
 from .credential_sniffer import sniff_mqtt_credentials, CredentialSnifferError
 
@@ -181,6 +184,7 @@ class PetlibroLocalConfigFlow(ConfigFlow, domain=DOMAIN):
     def __init__(self) -> None:
         """Initialize the config flow."""
         self._serial: str = ""
+        self._product_id: str = ""
         self._mqtt_username: str = ""
         self._mqtt_password: str = ""
 
@@ -229,7 +233,7 @@ class PetlibroLocalConfigFlow(ConfigFlow, domain=DOMAIN):
             nonlocal discovered
             parts = msg.topic.split("/")
             if len(parts) >= 3:
-                discovered = {"serial": parts[2].upper()}
+                discovered = {"serial": parts[2].upper(), "product_id": parts[1].upper()}
                 event.set()
 
         try:
@@ -252,6 +256,7 @@ class PetlibroLocalConfigFlow(ConfigFlow, domain=DOMAIN):
             return None
 
         self._serial = discovered["serial"]
+        self._product_id = discovered["product_id"]
 
         # Read credentials from Mosquitto options (feeder is already connected)
         self._mqtt_username, self._mqtt_password = await _read_mosquitto_credentials()
@@ -326,6 +331,7 @@ class PetlibroLocalConfigFlow(ConfigFlow, domain=DOMAIN):
         """Show discovered device for confirmation, then create entry."""
         if user_input is not None:
             self._serial = user_input["serial"]
+            self._product_id = user_input["product_id"]
 
             # Ensure login exists in Mosquitto
             if self._mqtt_username and self._mqtt_password:
@@ -340,16 +346,25 @@ class PetlibroLocalConfigFlow(ConfigFlow, domain=DOMAIN):
                 title=f"Petlibro {self._serial[-6:]}",
                 data={
                     CONF_SERIAL: self._serial,
+                    CONF_PRODUCT_ID: self._product_id,
                     CONF_MQTT_USERNAME: self._mqtt_username,
                     CONF_MQTT_PASSWORD: self._mqtt_password,
                 },
             )
+
+        default_product_id = self._product_id or DEVICE_PRODUCT_ID
+        product_id_options = list(SUPPORTED_PRODUCT_IDS)
+        if default_product_id not in product_id_options:
+            product_id_options.insert(0, default_product_id)
 
         return self.async_show_form(
             step_id="auto_detect_confirm",
             data_schema=vol.Schema(
                 {
                     vol.Required("serial", default=self._serial): str,
+                    vol.Required(
+                        "product_id", default=default_product_id
+                    ): vol.In(product_id_options),
                 }
             ),
             description_placeholders={
@@ -363,6 +378,7 @@ class PetlibroLocalConfigFlow(ConfigFlow, domain=DOMAIN):
         """Handle manual serial + credential entry."""
         if user_input is not None:
             self._serial = user_input["serial"].strip().upper()
+            self._product_id = user_input["product_id"]
             self._mqtt_username = user_input["mqtt_username"].strip()
             self._mqtt_password = user_input["mqtt_password"].strip()
 
@@ -378,6 +394,7 @@ class PetlibroLocalConfigFlow(ConfigFlow, domain=DOMAIN):
                 title=f"Petlibro {self._serial[-6:]}",
                 data={
                     CONF_SERIAL: self._serial,
+                    CONF_PRODUCT_ID: self._product_id,
                     CONF_MQTT_USERNAME: self._mqtt_username,
                     CONF_MQTT_PASSWORD: self._mqtt_password,
                 },
@@ -388,6 +405,9 @@ class PetlibroLocalConfigFlow(ConfigFlow, domain=DOMAIN):
             data_schema=vol.Schema(
                 {
                     vol.Required("serial"): str,
+                    vol.Required("product_id", default=DEVICE_PRODUCT_ID): vol.In(
+                        SUPPORTED_PRODUCT_IDS
+                    ),
                     vol.Required("mqtt_username"): str,
                     vol.Required("mqtt_password"): str,
                 }

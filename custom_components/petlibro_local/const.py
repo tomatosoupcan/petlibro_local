@@ -4,6 +4,7 @@ DOMAIN = "petlibro_local"
 
 # MQTT
 DEVICE_PRODUCT_ID = "PLAF203"
+SUPPORTED_PRODUCT_IDS = ["PLAF203", "PLAF203S", "PLAF301"]
 MQTT_PORT = 1883
 
 # MQTT topic templates
@@ -25,6 +26,7 @@ TOPIC_BROADCAST_SUB = TOPIC_BASE + "/broadcast/sub"
 
 # Config entry keys
 CONF_SERIAL = "serial"
+CONF_PRODUCT_ID = "product_id"
 CONF_MQTT_USERNAME = "mqtt_username"
 CONF_MQTT_PASSWORD = "mqtt_password"
 CONF_FEEDING_PLANS = "feeding_plans"

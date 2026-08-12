@@ -31,6 +31,7 @@ from .const import (
     CMD_NTP_SYNC,
     CMD_RESET,
     CODE_OK,
+    DEVICE_PRODUCT_ID,
     HEARTBEAT_INTERVAL_SEC,
     HEARTBEAT_WATCHDOG_SEC,
     NTP_DRIFT_THRESHOLD_SEC,
@@ -62,9 +63,11 @@ class PetlibroDevice:
         serial: str,
         mqtt_publish: Callable[[str, str], asyncio.coroutines],
         on_state_changed: StateCallback | None = None,
+        product_id: str = DEVICE_PRODUCT_ID,
     ) -> None:
         self.serial = serial
-        self.topics = PetlibroTopics(serial)
+        self.product_id = product_id
+        self.topics = PetlibroTopics(serial, product_id)
         self._mqtt_publish = mqtt_publish
         self._on_state_changed = on_state_changed
 

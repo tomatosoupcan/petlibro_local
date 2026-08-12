@@ -21,6 +21,7 @@ This integration:
 | Model | Status |
 |-------|--------|
 | PLAF203 / PLAF203S | Tested |
+| PLAF301 | Tested |
 | Other models | Should work |
 
 > The auto-detect setup flow captures your feeder's MQTT credentials directly from its connection attempt — no manual credential entry or firmware sniffing needed. The credentials (product key and secret) are [hard-coded per model in the firmware](https://securelist.com/smart-pet-feeder-vulnerabilities/110028/) and identical across all devices of the same model.
@@ -120,7 +121,7 @@ Requires the feeder to already be connected to your local Mosquitto broker (DNS 
 ### Manual entry
 
 1. Select **Enter credentials manually**
-2. Enter your device serial number and MQTT credentials (DL_PRODUCT_KEY / DL_PRODUCT_SECRET)
+2. Enter your device serial number, model, and MQTT credentials (DL_PRODUCT_KEY / DL_PRODUCT_SECRET)
 
 ## Feeding Schedule Card
 

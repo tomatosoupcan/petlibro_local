@@ -18,7 +18,8 @@
         "title": "Device Found",
         "description": "Discovered feeder **{serial}** on your MQTT broker.\n\nMQTT credentials have been automatically configured in Mosquitto.\n\n**Note:** After completing setup, the feeder may take up to **2 minutes** to reconnect and start reporting data. This is normal — the feeder needs to re-establish its MQTT connection after the credential capture process.",
         "data": {
-          "serial": "Device serial number"
+          "serial": "Device serial number",
+          "product_id": "Device model"
         }
       },
       "manual": {
@@ -26,6 +27,7 @@
         "description": "Enter your feeder's serial number and MQTT credentials.\n\nThe serial number (DL_DEVICE_ID) is on the bottom of the feeder or in the Petlibro app. The MQTT credentials (DL_PRODUCT_KEY / DL_PRODUCT_SECRET) are the same for all devices of the same model.",
         "data": {
           "serial": "Device serial number",
+          "product_id": "Device model",
           "mqtt_username": "MQTT username (DL_PRODUCT_KEY)",
           "mqtt_password": "MQTT password (DL_PRODUCT_SECRET)"
         }
