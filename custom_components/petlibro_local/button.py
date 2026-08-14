@@ -21,6 +21,7 @@ async def async_setup_entry(
         PetlibroDispenseButton(coordinator),
         PetlibroRebootButton(coordinator),
         PetlibroFactoryResetButton(coordinator),
+        PetlibroRetryCloseDoorButton(coordinator),
     ])
 
 
@@ -60,3 +61,21 @@ class PetlibroFactoryResetButton(PetlibroEntity, ButtonEntity):
 
     async def async_press(self) -> None:
         await self._device.factory_restore()
+
+
+class PetlibroRetryCloseDoorButton(PetlibroEntity, ButtonEntity):
+    """Re-sends coverOpenMode=KEEP_CLOSE to nudge a door stuck open.
+
+    Fires a single ATTR_SET_SERVICE; call it repeatedly (e.g. from an
+    automation) to retry a door that failed to close.
+    """
+
+    _attr_name = "Retry Close Door"
+    _attr_icon = "mdi:door-closed-lock"
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._device.serial}_retry_close_door"
+
+    async def async_press(self) -> None:
+        await self._device.set_attributes(cover_open_mode="KEEP_CLOSE")
