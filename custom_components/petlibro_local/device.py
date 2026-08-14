@@ -34,6 +34,7 @@ from .const import (
     CMD_WAREHOUSE_DOOR_EVENT,
     CODE_OK,
     DEVICE_PRODUCT_ID,
+    ERROR_CLEAR_DELAY_SEC,
     HEARTBEAT_INTERVAL_SEC,
     HEARTBEAT_WATCHDOG_SEC,
     NTP_DRIFT_THRESHOLD_SEC,
@@ -83,6 +84,7 @@ class PetlibroDevice:
         self._last_heartbeat: float = 0
         self._heartbeat_count: int | None = None
         self._heartbeat_task: asyncio.Task | None = None
+        self._error_clear_task: asyncio.Task | None = None
 
     @property
     def name(self) -> str:
@@ -98,6 +100,12 @@ class PetlibroDevice:
             self._heartbeat_task.cancel()
             try:
                 await self._heartbeat_task
+            except asyncio.CancelledError:
+                pass
+        if self._error_clear_task:
+            self._error_clear_task.cancel()
+            try:
+                await self._error_clear_task
             except asyncio.CancelledError:
                 pass
 
@@ -319,6 +327,23 @@ class PetlibroDevice:
 
         state_update = normalize_payload(payload)
         self.state.update(state_update)
+        self._notify_state_changed()
+
+        # The device only ever reports errors as point-in-time events, not
+        # sustained fault state, so clear it back out after a short delay
+        # instead of leaving it stuck at the last error forever.
+        if self._error_clear_task:
+            self._error_clear_task.cancel()
+        self._error_clear_task = asyncio.ensure_future(self._clear_error_after_delay())
+
+    async def _clear_error_after_delay(self) -> None:
+        """Reset error_code/error_trigger_time back to None after a delay."""
+        try:
+            await asyncio.sleep(ERROR_CLEAR_DELAY_SEC)
+        except asyncio.CancelledError:
+            return
+        self.state["error_code"] = None
+        self.state["error_trigger_time"] = None
         self._notify_state_changed()
 
     async def _handle_get_config(self, payload: dict) -> None:

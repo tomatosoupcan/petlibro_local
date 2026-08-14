@@ -74,24 +74,37 @@ class PetlibroFeedingEvent(PetlibroEntity, EventEntity):
 
 class PetlibroErrorEvent(PetlibroEntity, EventEntity):
     _attr_name = "Error"
-    _attr_event_types = [EVENT_ERROR]
     _attr_icon = "mdi:alert-circle"
 
     def __init__(self, coordinator: PetlibroCoordinator) -> None:
         super().__init__(coordinator)
         self._last_error: str | None = None
+        self._known_error_types: set[str] = set()
 
     @property
     def unique_id(self) -> str:
         return f"{self._device.serial}_error_event"
 
+    @property
+    def event_types(self) -> list[str]:
+        # Error codes aren't known ahead of time, so the list of valid
+        # event types grows as new codes are seen. Always includes a
+        # fallback so it's never empty before the first error arrives.
+        return sorted(self._known_error_types) or [EVENT_ERROR]
+
     @callback
     def _handle_coordinator_update(self) -> None:
-        """Check for new errors and fire events."""
+        """Fire an event named after the error code when a new error appears."""
         error = self.coordinator.data.get("error_code")
 
-        if error and error != self._last_error:
-            self._trigger_event(EVENT_ERROR, {"error_code": error})
+        if error is None:
+            # Device state cleared (see PetlibroDevice._clear_error_after_delay) —
+            # allow the same code to re-trigger an event if it recurs.
+            self._last_error = None
+        elif error != self._last_error:
+            event_type = str(error)
+            self._known_error_types.add(event_type)
+            self._trigger_event(event_type, {"error_code": error})
             self._last_error = error
 
         self.async_write_ha_state()
